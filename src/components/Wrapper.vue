@@ -1,20 +1,37 @@
 <template>
   <div class="wrapper">
     <Header />
-    <Cards />
+    <Board />
   </div>
 </template>
 
 <script>
 import Header from "./Header.vue";
-import Cards from "./Cards.vue";
+import Board from "./Board.vue";
+import { mapActions, mapGetters } from "vuex";
+
 export default {
   name: "Wrapper",
   components: {
     Header,
-    Cards,
+    Board,
+  },
+  data() {
+    return {};
+  },
+  computed: {
+    ...mapGetters(["CARDS"]),
+  },
+  methods: {
+    ...mapActions([""]),
   },
 };
 </script>
 
-<style></style>
+<style lang="scss">
+.wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+</style>

@@ -4,10 +4,16 @@ import Vuex from "vuex";
 Vue.use(Vuex);
 
 let store = new Vuex.Store({
-  state: {},
+  state: {
+    cards: [],
+  },
   mutations: {},
   actions: {},
-  getters: {},
+  getters: {
+    CARDS(state) {
+      return state.cards;
+    },
+  },
 });
 
 export default store;
