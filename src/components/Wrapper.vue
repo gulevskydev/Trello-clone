@@ -1,9 +1,20 @@
 <template>
-  <h1>Hello</h1>
+  <div class="wrapper">
+    <Header />
+    <Cards />
+  </div>
 </template>
 
 <script>
-export default {};
+import Header from "./Header.vue";
+import Cards from "./Cards.vue";
+export default {
+  name: "Wrapper",
+  components: {
+    Header,
+    Cards,
+  },
+};
 </script>
 
 <style></style>

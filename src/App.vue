@@ -15,4 +15,12 @@ export default {
 };
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+body {
+  background-color: rgb(0, 121, 191);
+}
+#app {
+  height: 100%;
+  width: 100%;
+}
+</style>
