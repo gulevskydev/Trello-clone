@@ -2,14 +2,16 @@
   <div class="board-canvas">
     <div class="board-wrapper"></div>
     <Cards />
-    <div class="add-card" @click="addCardTitle">
+    <div class="add-card" @click="addCardTitle" @keydown.enter="addNewCard">
       <div v-if="!isClickingOnCard" class="add-card__title">
         + Добавить еще одну колонку
       </div>
       <template v-if="isClickingOnCard">
         <input
+          ref="input"
           v-model="titleMessage"
           class="add-card__input"
+          focused="true"
           placeholder="Ввести заголовок списка"
         />
         <div class="add-card__input-wrapper">
@@ -38,9 +40,11 @@ export default {
       titleMessage: "",
     };
   },
+  mounted() {},
   methods: {
     addCardTitle() {
       this.isClickingOnCard = true;
+      this.$nextTick(() => this.$refs.input.focus());
     },
     closeCardAdditing() {
       this.isClickingOnCard = false;
@@ -49,6 +53,7 @@ export default {
       this.$store.commit("CREATE_CARD", {
         title: this.titleMessage,
         id: uuid(),
+        label: "",
         description: "",
       });
       this.clearDataAfterAdditingNewCard();
