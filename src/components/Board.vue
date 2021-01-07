@@ -1,14 +1,19 @@
 <template>
   <div class="board-canvas">
     <div class="board-wrapper"></div>
+    <Cards />
     <div class="add-card" @click="addCardTitle">
       <div v-if="!isClickingOnCard" class="add-card__title">
         + Добавить еще одну колонку
       </div>
       <template v-if="isClickingOnCard">
-        <input class="add-card__input" placeholder="Ввести заголовок списка" />
+        <input
+          v-model="titleMessage"
+          class="add-card__input"
+          placeholder="Ввести заголовок списка"
+        />
         <div class="add-card__input-wrapper">
-          <div class="add-card__button">
+          <div class="add-card__button" @click="addNewCard">
             Добавить список
           </div>
           <span class="add-card__close" @click.stop="closeCardAdditing" />
@@ -19,11 +24,18 @@
 </template>
 
 <script>
+import Cards from "./Cards";
+import { uuid } from "../utils";
+
 export default {
-  name: "Cards",
+  name: "Board",
+  components: {
+    Cards,
+  },
   data() {
     return {
       isClickingOnCard: false,
+      titleMessage: "",
     };
   },
   methods: {
@@ -32,6 +44,18 @@ export default {
     },
     closeCardAdditing() {
       this.isClickingOnCard = false;
+    },
+    addNewCard() {
+      this.$store.commit("CREATE_CARD", {
+        title: this.titleMessage,
+        id: uuid(),
+        description: "",
+      });
+      this.clearDataAfterAdditingNewCard();
+    },
+    clearDataAfterAdditingNewCard() {
+      this.titleMessage = "";
+      this.closeCardAdditing();
     },
   },
 };

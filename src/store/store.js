@@ -7,7 +7,11 @@ let store = new Vuex.Store({
   state: {
     cards: [],
   },
-  mutations: {},
+  mutations: {
+    CREATE_CARD: (state, card) => {
+      state.cards.push(card);
+    },
+  },
   actions: {},
   getters: {
     CARDS(state) {
