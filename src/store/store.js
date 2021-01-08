@@ -11,8 +11,13 @@ let store = new Vuex.Store({
     CREATE_CARD: (state, card) => {
       state.cards.push(card);
     },
+
+    ADD_NEW_TASK: (state, task) => {
+      const updateCard = state.cards.find((_, id) => id === task.index);
+      console.log(updateCard, task, state.cards);
+      updateCard.tasks.push(task);
+    },
   },
-  actions: {},
   getters: {
     CARDS(state) {
       return state.cards;

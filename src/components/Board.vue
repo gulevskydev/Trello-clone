@@ -1,7 +1,10 @@
 <template>
   <div class="board-canvas">
     <div class="board-wrapper"></div>
-    <Cards />
+    <template v-if="CARDS.length">
+      <Cards />
+    </template>
+
     <div class="add-card" @click="addCardTitle" @keydown.enter="addNewCard">
       <div v-if="!isClickingOnCard" class="add-card__title">
         + Добавить еще одну колонку
@@ -27,6 +30,7 @@
 
 <script>
 import Cards from "./Cards";
+import { mapGetters } from "vuex";
 import { uuid } from "../utils";
 
 export default {
@@ -41,26 +45,39 @@ export default {
     };
   },
   mounted() {},
+  computed: {
+    ...mapGetters(["CARDS"]),
+  },
   methods: {
     addCardTitle() {
       this.isClickingOnCard = true;
       this.$nextTick(() => this.$refs.input.focus());
     },
+
     closeCardAdditing() {
       this.isClickingOnCard = false;
     },
+
     addNewCard() {
-      this.$store.commit("CREATE_CARD", {
-        title: this.titleMessage,
-        id: uuid(),
-        label: "",
-        description: "",
-      });
-      this.clearDataAfterAdditingNewCard();
+      if (!this.handleEmptyTitle()) alert("Please enter title");
+      else {
+        this.$store.commit("CREATE_CARD", {
+          title: this.titleMessage,
+          id: uuid(),
+          label: "",
+          tasks: [],
+        });
+        this.clearDataAfterAdditingNewCard();
+      }
     },
+
     clearDataAfterAdditingNewCard() {
       this.titleMessage = "";
       this.closeCardAdditing();
+    },
+
+    handleEmptyTitle() {
+      return this.titleMessage.trim().length > 0;
     },
   },
 };
