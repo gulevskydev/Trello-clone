@@ -2,14 +2,7 @@
   <div class="query-form card">
     <div class="card-content">
       <h2 class="title">New task</h2>
-      <ui-input
-        name="title"
-        label="Title"
-        v-model="title"
-        v-validate="'required'"
-        :error="getError('title')"
-        @enter="validate"
-      />
+      <ui-input name="title" label="Title" v-model="title" @enter="validate" />
       <ui-input
         name="description"
         type="textarea"
@@ -24,7 +17,7 @@
         @enter="validate"
       />
       <div class="field is-grouped">
-        <ui-button type="primary" @click="validate">{{
+        <ui-button type="primary" @click="submit">{{
           id ? "Update" : "Add"
         }}</ui-button>
         <ui-button type="text" @click="cancel">Cancel</ui-button>
@@ -34,8 +27,8 @@
 </template>
 
 <script>
-import UiButton from "./UiButton";
-import UiInput from "./UiInput";
+import UiButton from "./UiButton.vue";
+import UiInput from "./UiModalInput.vue";
 
 export default {
   name: "UiForm",
@@ -67,17 +60,16 @@ export default {
     },
 
     validate() {
-      this.$validator.validate().then((state) => {
-        if (state) {
-          return this.submit();
-        }
-        this.message = "Please complete the required fields!";
-      });
+      if (!this.title) {
+        alert("Please create a title :)");
+      }
     },
 
     submit() {
-      this.$emit("submit", this.values);
-      this.reset();
+      if (this.validate) {
+        this.$emit("submit", this.values);
+        this.reset();
+      }
     },
 
     cancel() {
@@ -86,11 +78,10 @@ export default {
     },
 
     reset() {
-      Object.assign(this, this.data);
-    },
-
-    getError(name) {
-      return name.replace(/The .+ field/, "This field");
+      this.title = "";
+      this.description = "";
+      this.date = null;
+      this.message = "";
     },
   },
 };

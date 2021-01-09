@@ -17,6 +17,12 @@ export const mutations = {
   addNewCard(state, value) {
     state.cards.push(value);
   },
+
+  updateCard(state, value) {
+    state.cards = state.cards.map((card) =>
+      card.id === value.id ? value : card
+    );
+  },
 };
 
 const getters = {

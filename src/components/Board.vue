@@ -121,8 +121,9 @@ export default {
     },
 
     onAddCardData(item) {
+      console.log(item);
       item.id
-        ? this.$store.commit("updateItem", { itemId: item.id, ...item })
+        ? this.$store.commit("updateCard", { id: item.id, ...item })
         : this.addItem(
             this.activeCardId,
             item.title,
