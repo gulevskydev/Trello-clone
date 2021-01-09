@@ -1,169 +1,225 @@
 <template>
-  <div class="board-canvas">
-    <div class="board-wrapper"></div>
-    <template v-if="CARDS.length">
-      <Cards />
-    </template>
-
-    <div class="add-card" @click="addCardTitle" @keydown.enter="addNewCard">
-      <div v-if="!isClickingOnCard" class="add-card__title">
-        + Добавить еще одну колонку
+  <div class="board-container">
+    <div class="board">
+      <div class="clear-button">
+        <ui-button :disbaled="cards.length === 0" @click="reset"
+          >Reset</ui-button
+        >
       </div>
-      <template v-if="isClickingOnCard">
-        <input
-          ref="input"
-          v-model="titleMessage"
-          class="add-card__input"
-          focused="true"
-          placeholder="Ввести заголовок списка"
-        />
-        <div class="add-card__input-wrapper">
-          <div class="add-card__button" @click="addNewCard">
-            Добавить список
-          </div>
-          <span class="add-card__close" @click.stop="closeCardAdditing" />
+
+      <div class="cards-container">
+        <container
+          lock-axis="x"
+          orientation="horizontal"
+          drag-handle-selector=".list-drag-handle"
+          @drop="onDropHandler"
+        >
+          <draggable v-for="(card, index) in cards" :key="card.id">
+            <section class="card-container" ref="list" :data-id="card.id">
+              <div class="card-header__title">
+                <span class="card-drag-handle">&#x2630;</span>
+                {{ card.title }}
+              </div>
+              <container
+                group-name="card"
+                drag-class="card-ghost"
+                drop-class="card-ghost-drop"
+                non-drag-area-selector=".icon"
+                :animation-duration="100"
+                @drop="(e) => onCardDrop(e, card, index)"
+              >
+                <draggable v-for="item in card.items" :key="item.id">
+                  <!-- <Card :item="item" @edit="editItem"/> -->
+                </draggable>
+              </container>
+
+              <div class="input-main">
+                <ui-input
+                  :list-id="card.id"
+                  placeholder="Add an item"
+                  icon="ellipsis-h"
+                  @enter="onAddNewTask"
+                />
+              </div>
+            </section>
+          </draggable>
+        </container>
+
+        <div class="new-list">
+          <ui-input placeholder="Add a list" @enter="onAddNewCard" />
         </div>
-      </template>
+      </div>
     </div>
+
+    <ui-modal ref="modal" :active="modal" :cancellable="1" @close="hideModal">
+      <ui-form ref="form" @submit="onAddCardData" @cancel="hideModal" />
+    </ui-modal>
   </div>
 </template>
 
 <script>
-import Cards from "./Cards";
+import { Container, Draggable } from "vue-smooth-dnd";
 import { mapGetters } from "vuex";
-import { uuid } from "../utils";
+
+import UiButton from "../ui/UiButton.vue";
+import UiInput from "../ui/UiInput.vue";
+import UiForm from "../ui/UiForm.vue";
+import UiModal from "../ui/UiModal.vue";
+
+import { makeDropHandler } from "../utils";
 
 export default {
   name: "Board",
   components: {
-    Cards,
+    Container,
+    Draggable,
+    UiInput,
+    UiButton,
+    UiForm,
+    UiModal,
   },
-  data() {
+
+  data: function() {
     return {
-      isClickingOnCard: false,
-      titleMessage: "",
+      modal: false,
+      activeCardsId: null,
     };
   },
-  mounted() {},
+
   computed: {
-    ...mapGetters(["CARDS"]),
+    cards() {
+      return this.getCards;
+    },
+    ...mapGetters(["getCards"]),
   },
   methods: {
-    addCardTitle() {
-      this.isClickingOnCard = true;
-      this.$nextTick(() => this.$refs.input.focus());
+    reset() {
+      this.$store.commit("reset");
     },
 
-    closeCardAdditing() {
-      this.isClickingOnCard = false;
+    onDropHandler() {
+      makeDropHandler("onListDropComplete");
     },
 
-    addNewCard() {
-      if (!this.handleEmptyTitle()) alert("Please enter title");
-      else {
-        this.$store.commit("CREATE_CARD", {
-          title: this.titleMessage,
-          id: uuid(),
-          label: "",
-          tasks: [],
-        });
-        this.clearDataAfterAdditingNewCard();
-      }
+    onCardDrop() {
+      makeDropHandler("onCardDropComplete");
     },
 
-    clearDataAfterAdditingNewCard() {
-      this.titleMessage = "";
-      this.closeCardAdditing();
+    onAddNewTask(data) {
+      this.activeCardId = data.id;
+      this.modal = true;
+      this.showModal({ title: data.text });
+      return;
     },
 
-    handleEmptyTitle() {
-      return this.titleMessage.trim().length > 0;
+    onAddNewCard({ text }) {
+      this.$store.commit("addNewCard", { title: text });
+      this.$nextTick(() => {
+        const cards = this.$refs.list;
+        cards[cards.length - 1].querySelector("input").focus();
+      });
+    },
+
+    onAddCardData(item) {
+      item.id
+        ? this.$store.commit("updateItem", { itemId: item.id, ...item })
+        : this.addItem(
+            this.activeCardId,
+            item.title,
+            item.description,
+            item.date
+          );
+      this.hideModal();
+    },
+
+    addItem(cardId, title, description, date) {
+      this.$store.commit("addItem", { cardId, title, description, date });
+    },
+
+    showModal(item) {
+      this.modal = true;
+      this.$nextTick(() => {
+        this.$refs.form.show(item);
+      });
+    },
+
+    hideModal() {
+      // this.focusInput(this.activeCardsId);
+      this.modal = false;
     },
   },
 };
 </script>
 
 <style lang="scss">
-.board {
-  &-canvas {
-    position: relative;
-    flex-grow: 1;
-    margin-top: 30px;
-  }
+$column-width: 320px;
 
-  &-wrapper {
-    user-select: none;
-    white-space: nowrap;
-    margin-bottom: 8px;
-    // overflow-x: auto;
-    // overflow-y: hidden;
-    // padding-bottom: 8px;
-    // position: absolute;
-    // top: 0;
-    // right: 0;
-    // bottom: 0;
-    // left: 0;
+.board {
+  margin-top: 20px;
+  white-space: nowrap;
+  > * {
+    display: inline-block;
+  }
+  .new-list {
+    margin-top: 10px;
+  }
+}
+.clear-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.card-container {
+  width: $column-width;
+  padding: 10px;
+  margin: 5px;
+  margin-right: 20px;
+  background-color: #f3f3f3;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.24);
+}
+.cards-container {
+  > * {
+    display: inline-block;
+    vertical-align: top;
   }
 }
 
-.add-card {
+.card {
+  margin: 5px;
+  background-color: white;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.24);
+  padding: 10px;
+}
+.card-ghost {
+  transition: 0.25s all;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.12);
+  transform: scale(1.1);
+}
+.card-ghost-drop {
+  transform: scale(1);
+}
+.card-header__title {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  width: 270px;
-  height: auto;
-  min-height: 36px;
-  padding: 8px 4px;
-  border-radius: 3px;
+  box-shadow: none;
+  font-size: 18px;
+}
+.smooth-dnd-container {
+  min-height: 0px;
+}
+
+.card-drag-handle {
   cursor: pointer;
-  background-color: hsla(0, 0%, 100%, 0.4);
-
-  &__title {
-    color: #ffffff;
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-  &__input {
-    display: block;
-    width: 100%;
-    margin-bottom: 10px;
-    border-radius: 3px;
-    display: block;
-    line-height: 20px;
-    margin-bottom: 12px;
-    padding: 8px 12px;
-    background-color: #fff;
-    box-shadow: inset 0 0 0 2px #0079bf;
-    transition: margin 85ms ease-in, background 85ms ease-in;
-  }
-
-  &__button {
-    min-height: 36px;
-    height: 36px;
-    margin-top: 0;
-    padding: 8px;
-    margin-right: 20px;
-    background-color: #5aac44;
-    box-shadow: none;
-    border: none;
-    color: #fff;
-  }
-
-  &__input-wrapper {
-    display: flex;
-  }
-
-  &__close {
-    height: 12px;
-    width: 12px;
-    background-image: url("../images/cancel.svg");
-    transition: hover 0.3s;
-
-    &:hover {
-      transform: scale(1.2);
-    }
-  }
+  padding: 5px;
+}
+.input-main {
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid #ddd;
+}
+.new-list {
+  width: $column-width;
+  margin-left: -10px;
 }
 </style>
