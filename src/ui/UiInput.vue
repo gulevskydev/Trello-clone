@@ -12,7 +12,7 @@
       <button
         type="submit"
         class="button is-primary"
-        @click="onSubmit"
+        @click="onClickDetailes"
         :disabled="input.length === 0"
       >
         <span class="icon is-small">
@@ -37,6 +37,7 @@ export default {
   data() {
     return {
       input: "",
+      detailed: false,
     };
   },
   methods: {
@@ -49,9 +50,20 @@ export default {
         this.$emit("enter", {
           id: this.cardId,
           text: this.input,
+          detailed: this.detailed,
         });
-        this.input = "";
+        this.clearData();
       }
+    },
+
+    onClickDetailes() {
+      this.detailed = true;
+      this.onSubmit();
+    },
+
+    clearData() {
+      this.input = "";
+      this.detailed = false;
     },
   },
 };

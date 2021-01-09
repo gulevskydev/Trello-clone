@@ -29,13 +29,13 @@
                 @drop="(e) => onCardDrop(e, card, index)"
               >
                 <draggable v-for="item in card.items" :key="item.id">
-                  <!-- <Card :item="item" @edit="editItem"/> -->
+                  <Task :item="item" @edit="editItem" />
                 </draggable>
               </container>
 
               <div class="input-main">
                 <ui-input
-                  :list-id="card.id"
+                  :card-id="card.id"
                   placeholder="Add an item"
                   icon="ellipsis-h"
                   @enter="onAddNewTask"
@@ -52,7 +52,7 @@
     </div>
 
     <ui-modal ref="modal" :active="modal" :cancellable="1" @close="hideModal">
-      <ui-form ref="form" @submit="onAddCardData" @cancel="hideModal" />
+      <ui-form ref="form" @submit="onAddNewTask" @cancel="hideModal" />
     </ui-modal>
   </div>
 </template>
@@ -65,6 +65,7 @@ import UiButton from "../ui/UiButton.vue";
 import UiInput from "../ui/UiInput.vue";
 import UiForm from "../ui/UiForm.vue";
 import UiModal from "../ui/UiModal.vue";
+import Task from "./Task.vue";
 
 import { makeDropHandler } from "../utils";
 
@@ -77,6 +78,7 @@ export default {
     UiButton,
     UiForm,
     UiModal,
+    Task,
   },
 
   data: function() {
@@ -106,10 +108,13 @@ export default {
     },
 
     onAddNewTask(data) {
-      this.activeCardId = data.id;
-      this.modal = true;
-      this.showModal({ title: data.text });
-      return;
+      if (data.detailed === true) {
+        this.activeCardId = data.id;
+        this.modal = true;
+        this.showModal({ title: data.text });
+        return;
+      }
+      this.addItem(data.id, data.text);
     },
 
     onAddNewCard({ text }) {
@@ -120,21 +125,22 @@ export default {
       });
     },
 
-    onAddCardData(item) {
-      console.log(item);
-      item.id
-        ? this.$store.commit("updateCard", { id: item.id, ...item })
-        : this.addItem(
-            this.activeCardId,
-            item.title,
-            item.description,
-            item.date
-          );
-      this.hideModal();
-    },
+    // onAddNewTask(item) {
+    //   console.log(item);
+    //   item.id
+    //     ? this.$store.commit("updateCard", { id: item.id, ...item })
+    //     : this.addItem(
+    //         this.activeCardId,
+    //         item.title,
+    //         item.description,
+    //         item.date
+    //       );
+    //   this.hideModal();
+    // },
 
     addItem(cardId, title, description, date) {
-      this.$store.commit("addItem", { cardId, title, description, date });
+      console.log({ cardId, title, description, date });
+      this.$store.commit("addTask", { cardId, title, description, date });
     },
 
     showModal(item) {
