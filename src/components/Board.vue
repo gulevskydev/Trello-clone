@@ -29,7 +29,7 @@
                 @drop="(e) => onCardDrop(e, card, index)"
               >
                 <draggable v-for="item in card.items" :key="item.id">
-                  <Task :item="item" @edit="editItem" />
+                  <Task :item="item" @edit="editTask" />
                 </draggable>
               </container>
 
@@ -125,6 +125,9 @@ export default {
       });
     },
 
+    editTask(task) {
+      this.showModal(task);
+    },
     // onAddNewTask(item) {
     //   console.log(item);
     //   item.id
@@ -143,10 +146,10 @@ export default {
       this.$store.commit("addTask", { cardId, title, description, date });
     },
 
-    showModal(item) {
+    showModal(task) {
       this.modal = true;
       this.$nextTick(() => {
-        this.$refs.form.show(item);
+        this.$refs.form.show(task);
       });
     },
 
